@@ -1,12 +1,14 @@
 package main
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/pbreedt/go-movies/internal/booking"
 	"github.com/pbreedt/go-movies/internal/catalog"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"gopkg.in/natefinch/lumberjack.v2"
 
 	"github.com/labstack/echo/v5"
 )
@@ -24,6 +26,19 @@ type BookingRequest struct {
 
 func main() {
 	reg := prometheus.NewRegistry()
+	lumberjackLogger := &lumberjack.Logger{
+		Filename:   "./movies.log",
+		MaxSize:    10,   // megabytes before rotation
+		MaxBackups: 3,    // max number of old log files to keep
+		MaxAge:     28,   // max days to retain old log files
+		Compress:   true, // compress/gzip old files
+	}
+
+	// Pass lumberjack directly to your choice of slog handler
+	logger := slog.New(slog.NewJSONHandler(lumberjackLogger, nil))
+
+	// Set as global logger
+	slog.SetDefault(logger)
 
 	movieRepo := catalog.NewInMemoryRepository()
 	bookingRepo := booking.NewInMemoryRepository()

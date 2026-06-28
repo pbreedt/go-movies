@@ -3,7 +3,6 @@ package booking
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"time"
 
@@ -15,7 +14,6 @@ type Service struct {
 	BookingRepo Repository
 	MovieRepo   catalog.Repository
 	metrics     *metrics
-	logger      *slog.Logger
 }
 
 type Ticket struct {
@@ -30,7 +28,6 @@ func NewService(bookingRepo Repository, movieRepo catalog.Repository) *Service {
 	return &Service{
 		BookingRepo: bookingRepo,
 		MovieRepo:   movieRepo,
-		logger:      slog.New(slog.NewJSONHandler(log.Writer(), nil)),
 	}
 }
 
@@ -52,7 +49,7 @@ func (s *Service) BookWithPayPal(ctx context.Context, movieId int, showTimeId in
 func (s *Service) create(ctx context.Context, movieId int, showTimeId int, seats int, payment payment.Provider) (*Ticket, error) {
 	var err error
 	defer func() {
-		s.logger.Info("booking attempt",
+		slog.Info("booking attempt",
 			"movie_id", movieId,
 			"show_time_id", showTimeId,
 			"seats", seats,
